@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+state/candidates.json
+state/context.json
+state/selection.json
+state/attempt.json
+state/deepdive_input.json
+state/deepdive.json
+state/resolved.json
+state/model_discovered.json
