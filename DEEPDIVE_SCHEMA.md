@@ -27,7 +27,10 @@ Write ONLY this object to `state/deepdive.json`. No markdown, no prose.
 {
   "why_it_matters": ["3-4 full-thought bullets naming specific methods, figures, or results and how each connects to the reader's mouse or human paradigm"],
   "read_plan": "A concrete ~20-minute reading plan: which sections to read in full, which to skim, and what to focus on in each — refine the selection step's version now that you may have more than the abstract.",
-  "reflection_question": "A two-part question building toward an actual experimental-design decision, tied to the reader's own work, ending in ?"
+  "reflection_question": "A two-part question building toward an actual experimental-design decision, tied to the reader's own work, ending in ?",
+  "corresponding_author": "Optional — only include if reading the full text/Elicit surfaced a more accurate name than the selection step already had; omit or leave empty otherwise",
+  "university": "Optional, same rule as above",
+  "country": "Optional, same rule as above"
 }
 ```
 

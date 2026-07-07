@@ -83,7 +83,16 @@ def fetch_openalex(since, until, email="") -> list[dict]:
 def _openalex_paper(w, pool, tag):
     src = (w.get("primary_location") or {}).get("source") or {}
     oa_type = w.get("type") or ""
+    version = (w.get("primary_location") or {}).get("version") or ""
     affiliation, country = _openalex_affiliation(w)
+    # "properly published" means type=article AND version=publishedVersion.
+    # This catches things the type field alone misses — e.g. eLife's Reviewed
+    # Preprints carry type="article" but version="acceptedVersion" or
+    # "submittedVersion" rather than "publishedVersion" until the final
+    # Version of Record is out.
+    is_preprint = (oa_type.lower() == "preprint") or (
+        bool(version) and version != "publishedVersion"
+    )
     return {
         "title": w.get("title") or "",
         "abstract": _reconstruct_abstract(w.get("abstract_inverted_index")),
@@ -94,7 +103,7 @@ def _openalex_paper(w, pool, tag):
         "authors": [(a.get("author") or {}).get("display_name", "")
                     for a in (w.get("authorships") or [])],
         "type": oa_type,
-        "is_preprint": oa_type.lower() == "preprint",
+        "is_preprint": is_preprint,
         "affiliation": affiliation,
         "country": country,
         "source_api": "OpenAlex",
@@ -285,7 +294,14 @@ _POOL_PRIORITY = {"flagship": 0, "A": 1, "B": 2}
 
 def dedupe(papers) -> list[dict]:
     seen_doi, seen_title, out = set(), set(), []
-    papers = sorted(papers, key=lambda p: _POOL_PRIORITY.get(p.get("pool"), 9))
+    # Sort by pool priority first, then prefer a confirmed non-preprint record
+    # over an ambiguous/preprint one for the same paper (e.g. an eLife paper
+    # seen via both RSS — ambiguous review status — and PubMed once it's
+    # confirmed indexed as final; the PubMed record should win the tie).
+    papers = sorted(papers, key=lambda p: (
+        _POOL_PRIORITY.get(p.get("pool"), 9),
+        1 if p.get("is_preprint") else 0,
+    ))
     for p in papers:
         doi = (p.get("doi") or "").lower().strip()
         tkey = _norm_title(p.get("title"))

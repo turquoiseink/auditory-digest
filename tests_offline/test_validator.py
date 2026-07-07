@@ -14,10 +14,12 @@ good = {
     "editorial": "Today's batch leans on prefrontal sequence coding. The IFG decoding paper is worth your time. It maps onto your human chunk-in-stream task.",
     "sections": {
         "Auditory & prefrontal electrophysiology": [
-            {"candidate_id": 0, "relevance_note": "PL single units track order-related transition statistics in a design close to my own."}
+            {"candidate_id": 0, "relevance_note": "PL single units track order-related transition statistics in a design close to my own.",
+             "corresponding_author": "Xuanyu Wang", "university": "Technical University of Munich", "country": "Germany"}
         ],
         "Serendipity (outside my paradigm)": [
-            {"candidate_id": 3, "relevance_note": "Major new cortical recording method, field-defining."}
+            {"candidate_id": 3, "relevance_note": "Major new cortical recording method, field-defining.",
+             "corresponding_author": "", "university": "", "country": ""}
         ],
     },
     "paper_of_the_day": {
@@ -27,6 +29,7 @@ good = {
                             "Contrasts template-matching vs statistical learning"],
         "reflection_question": GOOD_REFLECTION,
         "read_plan": GOOD_READ_PLAN,
+        "corresponding_author": "Jane Doe", "university": "MIT", "country": "USA",
     },
 }
 ok, errs = validate(good, candidates)
@@ -94,10 +97,12 @@ candidates_with_preprint = [
 ]
 minimal = {
     "editorial": good["editorial"],
-    "sections": {"Other notable": [{"candidate_id": 1, "relevance_note": "x"}]},
+    "sections": {"Other notable": [{"candidate_id": 1, "relevance_note": "x",
+                                     "corresponding_author": "", "university": "", "country": ""}]},
     "paper_of_the_day": {"source": "new", "candidate_id": 0, "canon_entry": None,
                           "why_it_matters": ["a", "b"], "reflection_question": GOOD_REFLECTION,
-                          "read_plan": GOOD_READ_PLAN},
+                          "read_plan": GOOD_READ_PLAN,
+                          "corresponding_author": "", "university": "", "country": ""},
 }
 ok, errs = validate(minimal, candidates_with_preprint)
 assert not ok and any("is a preprint" in e for e in errs), errs
@@ -108,6 +113,24 @@ minimal2 = {**minimal, "paper_of_the_day": {**minimal["paper_of_the_day"], "cand
 ok2, errs2 = validate(minimal2, candidates_with_preprint)
 assert ok2, errs2
 print("PASS — non-preprint candidate accepted as Paper of the Day")
+
+# --- missing corresponding_author/university/country rejected ---
+bad = {**good, "sections": {"Other notable": [
+    {"candidate_id": 1, "relevance_note": "x"}  # missing the 3 new fields entirely
+]}}
+ok, errs = validate(bad, candidates)
+assert not ok and sum("missing 'corresponding_author'" in e or "missing 'university'" in e
+                       or "missing 'country'" in e for e in errs) == 3, errs
+print("PASS — missing corresponding_author/university/country all individually rejected")
+
+# --- empty-string values for these fields are fine (not everything is findable) ---
+ok_empty = {**good, "sections": {"Other notable": [
+    {"candidate_id": 1, "relevance_note": "x",
+     "corresponding_author": "", "university": "", "country": ""}
+]}}
+ok, errs = validate(ok_empty, candidates)
+assert ok, errs
+print("PASS — empty string values accepted (key present, genuinely-not-findable is fine)")
 
 # --- deep-dive validator: same rules, standalone ---
 good_dd = {"why_it_matters": ["a solid bullet", "another solid bullet"],

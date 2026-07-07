@@ -75,6 +75,8 @@ def _styles():
                                  fontSize=10.5, textColor=INK, leading=13, spaceAfter=1),
         "pmeta": ParagraphStyle("pm", parent=ss["Normal"], fontName="Helvetica-Oblique",
                                 fontSize=7.8, textColor=MUTED, spaceAfter=2),
+        "pcredit": ParagraphStyle("pc", parent=ss["Normal"], fontName="Helvetica",
+                                  fontSize=7.8, textColor=ACCENT_DK, spaceAfter=2),
         "pnote": ParagraphStyle("pn", parent=ss["Normal"], fontName="Helvetica",
                                 fontSize=9.3, textColor=INK, leading=12.2, spaceAfter=6),
         "potd_label": ParagraphStyle("pl", fontName="Helvetica-Bold", fontSize=8,
@@ -94,6 +96,20 @@ def _styles():
         "quiet": ParagraphStyle("q", parent=ss["Normal"], fontName="Times-Italic",
                                 fontSize=11, textColor=MUTED, leading=15),
     }
+
+
+def _xml_escape(s: str) -> str:
+    return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _credit_and_link_line(credit: str, link: str) -> str:
+    parts = []
+    if credit:
+        parts.append(_xml_escape(credit))
+    if link:
+        safe_link = _xml_escape(link)
+        parts.append(f'<link href="{safe_link}" color="#0f6e6e"><u>Open paper</u></link>')
+    return " &nbsp;|&nbsp; ".join(parts)
 
 
 def _badge(pool, source_api):
@@ -144,8 +160,12 @@ def render_digest(output_path, issue_date, editorial, sections, paper_of_day,
             entry = [
                 Paragraph(p.get("title", "(untitled)"), st["ptitle"]),
                 Paragraph(f'{badge} &nbsp; {p.get("meta","")}', st["pmeta"]),
-                Paragraph(p.get("note", ""), st["pnote"]),
             ]
+            credit = p.get("credit", "")
+            link = p.get("link", "")
+            if credit or link:
+                entry.append(Paragraph(_credit_and_link_line(credit, link), st["pcredit"]))
+            entry.append(Paragraph(p.get("note", ""), st["pnote"]))
             story.append(KeepTogether(entry))
 
     # Paper of the Day — closes the issue
@@ -189,6 +209,11 @@ def _potd_box(st, potd, content_w):
              Paragraph(potd.get("title", "(untitled)"), st["potd_title"])]
     if potd.get("meta"):
         inner.append(Paragraph(potd["meta"], st["potd_meta"]))
+    credit = potd.get("credit", "")
+    link = potd.get("link", "")
+    if credit or link:
+        line = _credit_and_link_line(credit, link).replace("#0f6e6e", "#8fd4d4")
+        inner.append(Paragraph(line, st["potd_meta"]))
     inner.append(Spacer(1, 4))
     for b in potd.get("bullets", []):
         inner.append(Paragraph(f"&bull;&nbsp; {b}", st["potd_bullet"]))

@@ -53,14 +53,17 @@ VALID = {
     "editorial": "Two on-paradigm papers today connecting to your BC/CB and IFG work.",
     "sections": {
         "Auditory & prefrontal electrophysiology": [
-            {"candidate_id": 0, "relevance_note": "PL units track BC-vs-CB transitions."}],
+            {"candidate_id": 0, "relevance_note": "PL units track BC-vs-CB transitions.",
+             "corresponding_author": "A. Smith", "university": "Some University", "country": "USA"}],
         "Language, stroke & BCI": [
-            {"candidate_id": 1, "relevance_note": "IFG cross-temporal chunk decoding."}],
+            {"candidate_id": 1, "relevance_note": "IFG cross-temporal chunk decoding.",
+             "corresponding_author": "", "university": "", "country": ""}],
     },
     "paper_of_the_day": {"source": "new", "candidate_id": 1, "canon_entry": None,
         "why_it_matters": ["A", "B", "C"],
         "reflection_question": "How would their cross-temporal decoding window need to change for your mouse task's order-controlled timing?",
-        "read_plan": "Read the Introduction and Methods in full; skim Results; read the Discussion's final paragraphs."},
+        "read_plan": "Read the Introduction and Methods in full; skim Results; read the Discussion's final paragraphs.",
+        "corresponding_author": "C. Kim", "university": "MIT", "country": "USA"},
 }
 
 print("=== TEST 1: valid selection on first attempt (new-day POTD) ===")
@@ -126,7 +129,8 @@ CANON_SEL = {**VALID, "paper_of_the_day": {"source": "canon", "candidate_id": No
              "canon_entry": "Saffran, Aslin & Newport (1996, Science)",
              "why_it_matters": ["A", "B"],
              "reflection_question": "How would their cross-temporal decoding window need to change for your mouse task's order-controlled timing?",
-             "read_plan": "Read the Introduction and Methods in full; skim Results; read the Discussion's final paragraphs."}}
+             "read_plan": "Read the Introduction and Methods in full; skim Results; read the Discussion's final paragraphs.",
+             "corresponding_author": "", "university": "", "country": ""}}
 json.dump(CANON_SEL, open("state/selection.json", "w", encoding="utf-8"))
 r = run(["src/process_selection.py"])
 assert r.returncode == 0

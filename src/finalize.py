@@ -104,6 +104,14 @@ def main():
             potd["reflection_question"] = dd.get("reflection_question",
                                                   potd.get("reflection_question"))
             potd["read_plan"] = dd.get("read_plan", potd.get("read_plan"))
+            if dd.get("corresponding_author") or dd.get("university") or dd.get("country"):
+                new_credit = pc.credit_line(
+                    dd.get("corresponding_author", "") or "",
+                    dd.get("university", "") or "",
+                    dd.get("country", "") or "",
+                )
+                if new_credit:  # only overwrite if the deep-dive actually found something
+                    potd["credit"] = new_credit
             potd["meta"] = potd.get("meta", "") + (
                 " — full text used" if dd.get("full_text_used") else " — abstract only")
         else:

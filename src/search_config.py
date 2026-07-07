@@ -187,3 +187,11 @@ FLAGSHIP_JOURNALS = [
     {"name": "Journal of Neuroscience", "issn": "1529-2401",
      "rss": "https://www.jneurosci.org/rss/current.xml", "is_open_access": False},
 ]
+
+# --- Journals whose RSS feed mixes reviewed-but-not-yet-finalized preprints
+# with fully accepted Versions of Record, with no way to tell which from feed
+# data alone. Conservatively treated as preprint-like for "must be properly
+# published" contexts (Paper of the Day eligibility) — still fine for regular
+# sections. eLife's model publishes "Reviewed Preprints" as first-class,
+# citable, DOI-bearing outputs before any final accept/reject decision.
+AMBIGUOUS_REVIEW_STATUS = {"eLife"}

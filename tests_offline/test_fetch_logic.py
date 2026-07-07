@@ -60,4 +60,13 @@ dd2 = fp.dedupe(papers2)
 assert len(dd2) == 1 and dd2[0]["pool"] == "flagship", dd2
 print("PASS — dedupe priority: flagship wins over A and B on a tie")
 
+# --- eLife RSS entries conservatively flagged; PubMed confirmation wins dedupe tie ---
+elife_via_rss = {"title": "Some eLife paper", "doi": "10.7554/elife.99999",
+                  "pool": "flagship", "is_preprint": True, "source_api": "RSS:eLife"}
+elife_via_pubmed = {"title": "Some eLife paper", "doi": "10.7554/elife.99999",
+                     "pool": "flagship", "is_preprint": False, "source_api": "PubMed"}
+dd3 = fp.dedupe([elife_via_rss, elife_via_pubmed])
+assert len(dd3) == 1 and dd3[0]["is_preprint"] is False, dd3
+print("PASS — confirmed non-preprint (PubMed) wins dedupe tie over ambiguous RSS entry")
+
 print("\nAll fetch-logic unit tests passed.")

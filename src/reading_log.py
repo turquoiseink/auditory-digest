@@ -23,7 +23,8 @@ from openpyxl.utils import get_column_letter
 
 log = logging.getLogger("readinglog")
 
-COLUMNS = ["Date Added", "Title", "Authors", "Venue", "Year", "DOI/URL",
+COLUMNS = ["Date Added", "Title", "Authors", "Corresponding Author",
+           "University", "Country", "Venue", "Year", "DOI/URL",
            "Section", "Why It's Relevant", "Paper of the Day",
            "Full Text Used", "Read"]
 
@@ -112,6 +113,9 @@ def append_rows(path: str, new_papers: list[dict]) -> int:
             today,
             p.get("title", ""),
             author_str,
+            p.get("corresponding_author", ""),
+            p.get("university", ""),
+            p.get("country", ""),
             p.get("venue", ""),
             _year_of(p.get("date", "")),
             p.get("url") or p.get("doi", ""),
@@ -132,6 +136,6 @@ def append_rows(path: str, new_papers: list[dict]) -> int:
 
 
 def _set_widths(ws):
-    widths = [12, 46, 20, 20, 6, 34, 32, 50, 10, 12, 6]
+    widths = [12, 46, 20, 20, 26, 10, 20, 6, 34, 32, 50, 10, 12, 6]
     for i, w in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(i)].width = w

@@ -115,4 +115,16 @@ assert rec["doi"] == "10.1016/j.neuron.2026.01.001"
 assert rec["is_preprint"] is False
 print("PASS — PubMed efetch XML parsing (multi-part abstract, corresponding-author affiliation, country guess)")
 
+# --- regression test: real bug found in production (2026-07-07 digest) ---
+# A UK-based paper's affiliation string chained a co-author's German institute
+# after a semicolon; the old substring-anywhere search wrongly returned
+# "Germany" for an Oxford-based paper. Only the primary (first) affiliation's
+# own trailing segment should be trusted.
+bug_case = ("Oxford Centre for Integrative Neuroimaging, FMRIB, Nuffield "
+            "Department of Clinical Neurosciences, University of Oxford, "
+            "Oxford, United Kingdom; Max Planck Institute, Germany")
+assert ff._guess_country(bug_case) == "United Kingdom", \
+    f"country-guessing regression: got {ff._guess_country(bug_case)!r}"
+print("PASS — country-guessing regression test (Oxford paper no longer mislabelled Germany)")
+
 print("\nAll fetch_flagship tests passed.")

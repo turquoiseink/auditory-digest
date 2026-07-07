@@ -71,6 +71,13 @@ def validate(selection: dict, candidates: list[dict]) -> tuple[bool, list[str]]:
                 note = it.get("relevance_note")
                 if not isinstance(note, str) or not note.strip():
                     errors.append(f"relevance_note for candidate {cid} missing/empty")
+                for field in ("corresponding_author", "university", "country"):
+                    if field not in it or not isinstance(it.get(field), str):
+                        errors.append(
+                            f"candidate {cid} in '{name}' missing '{field}' "
+                            f"(must be a string — empty string is fine if genuinely "
+                            f"not determinable, but the key must be present)"
+                        )
                 total += 1
     if total > MAX_TOTAL_PAPERS:
         errors.append(f"too many papers selected ({total}); max {MAX_TOTAL_PAPERS}")
@@ -134,6 +141,14 @@ def validate(selection: dict, candidates: list[dict]) -> tuple[bool, list[str]]:
                 "skim, what to focus on in each)"
             )
 
+        for field in ("corresponding_author", "university", "country"):
+            if field not in potd or not isinstance(potd.get(field), str):
+                errors.append(
+                    f"paper_of_the_day missing '{field}' (must be a string — "
+                    f"empty string is fine if genuinely not determinable for a "
+                    f"canon entry, but the key must be present)"
+                )
+
     return (len(errors) == 0), errors
 
 
@@ -162,5 +177,9 @@ def validate_deepdive(deepdive: dict) -> tuple[bool, list[str]]:
     read_plan = deepdive.get("read_plan")
     if not isinstance(read_plan, str) or not read_plan.strip():
         errors.append("read_plan missing or empty")
+
+    for field in ("corresponding_author", "university", "country"):
+        if field in deepdive and not isinstance(deepdive.get(field), str):
+            errors.append(f"{field}, if present, must be a string")
 
     return (len(errors) == 0), errors

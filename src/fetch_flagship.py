@@ -107,7 +107,14 @@ def fetch_journal_feed(journal: dict, since: dt.date, until: dt.date, email: str
                 "venue": journal["name"],
                 "authors": [],  # feeds rarely include structured author lists
                 "type": "article",
-                "is_preprint": False,
+                # RSS feeds carry no version field, so we can't distinguish a
+                # finalized Version of Record from an interim reviewed
+                # preprint at feed level. Journals in AMBIGUOUS_REVIEW_STATUS
+                # (search_config.py) are conservatively treated as not-yet-
+                # finalized — err toward excluding from "must be properly
+                # published" contexts (Paper of the Day) rather than risk
+                # treating an unfinished review as a settled result.
+                "is_preprint": journal["name"] in search_config.AMBIGUOUS_REVIEW_STATUS,
                 "source_api": f"RSS:{journal['name']}",
                 "pool": "flagship",
                 "cluster": "flagship-feed",
@@ -264,11 +271,25 @@ _COUNTRY_HINTS = [
 
 def _guess_country(affiliation: str) -> str:
     """Affiliation strings don't have a structured country field in PubMed
-    XML — best-effort tail match against a common-country list. Imperfect but
-    good enough for a meta-line credit, not used for any decision logic."""
-    for c in _COUNTRY_HINTS:
-        if re.search(rf"\b{re.escape(c)}\b", affiliation, re.I):
-            return c
+    XML — best-effort match against a common-country list. IMPORTANT: PubMed
+    affiliation strings often chain multiple institutions/authors separated
+    by semicolons (e.g. "Dept X, Univ Oxford, UK; Max Planck Inst, Germany").
+    We only look at the FIRST semicolon-separated chunk (the primary/first-
+    listed affiliation), then only trust a country if it's that chunk's
+    trailing comma segment — a bare substring search anywhere in the full
+    string is what caused a UK-based paper to be mislabelled Germany because
+    a co-author's German institute appeared later in the same string.
+    Returns "" rather than guess wrong."""
+    if not affiliation:
+        return ""
+    primary = affiliation.strip().split(";")[0].strip()
+    parts = primary.split(",")
+    tail = parts[-1].strip()
+    tail2 = ",".join(parts[-2:]).strip() if len(parts) > 1 else tail
+    for candidate in (tail, tail2):
+        for c in _COUNTRY_HINTS:
+            if re.fullmatch(rf"{re.escape(c)}\.?", candidate, re.I):
+                return c
     return ""
 
 

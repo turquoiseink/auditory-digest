@@ -53,7 +53,10 @@ Write ONLY this object to `state/selection.json`. No markdown, no prose.
   "editorial": "3-5 plain sentences: the day's throughline (or an honest note if thin) and one concrete tie to the reader's mouse or human work.",
   "sections": {
     "<one of the allowed section names>": [
-      {"candidate_id": 4, "relevance_note": "2-4 sentences naming the exact finding/method/region that connects to their work."}
+      {"candidate_id": 4, "relevance_note": "2-4 sentences naming the exact finding/method/region that connects to their work.",
+       "corresponding_author": "Name of the corresponding/senior author",
+       "university": "University name only (see procedure below); institute name only if there's genuinely no university",
+       "country": "Country name"}
     ]
   },
   "paper_of_the_day": {
@@ -62,10 +65,47 @@ Write ONLY this object to `state/selection.json`. No markdown, no prose.
     "canon_entry": null,
     "why_it_matters": ["3-4 full-thought bullets", "...", "..."],
     "read_plan": "A concrete ~20-minute reading plan: which sections to read in full, which to skim, what to focus on in each.",
-    "reflection_question": "A two-part question building toward an actual experimental-design decision — not a single-clause comprehension check. Must be specific enough that answering it requires having engaged with the paper's method or finding."
+    "reflection_question": "A two-part question building toward an actual experimental-design decision — not a single-clause comprehension check. Must be specific enough that answering it requires having engaged with the paper's method or finding.",
+    "corresponding_author": "Name of the corresponding/senior author",
+    "university": "University name only; institute name only if there's genuinely no university",
+    "country": "Country name"
   }
 }
 ```
+
+## Corresponding author / university / country — the lookup procedure (same every day)
+
+Every selected paper (and the Paper of the Day) needs these three fields.
+Follow this exact order, stopping at the first step that succeeds, so the
+process is identical every day rather than improvised per paper:
+
+1. **Check the candidate's own data first.** Each candidate in
+   `candidates.json` may already carry `affiliation`/`country` (populated
+   deterministically from OpenAlex or PubMed — mainly Tier 1/Tier 3
+   candidates). If `affiliation` clearly names a university, use that
+   directly for `university`, its `country` field for `country`, and the
+   last-listed author in `authors` as `corresponding_author` (PubMed/OpenAlex
+   list the senior/corresponding author last by convention). **Do not
+   re-derive this from scratch if it's already there** — that would be
+   wasted, inconsistent effort.
+2. **If that data is missing or empty** (this is the normal case for
+   bioRxiv/Tier 2 candidates, which carry no affiliation data at all): fetch
+   the paper's own landing page using its `url` or `doi` field (a bioRxiv or
+   journal abstract page reliably shows the full author list and
+   affiliations, usually right at the top). Extract the corresponding
+   author's name, their university, and country from that page directly.
+3. **Only if step 2 fails** (page didn't load, or affiliations weren't
+   shown clearly there): fall back to a web search for
+   `"<paper title>" corresponding author affiliation`.
+4. **If genuinely not determinable after step 3**, leave the field as an
+   empty string — do not guess or invent a name/institution. An empty field
+   is fine; a wrong one is not.
+
+Rules for `university`: report the **university name only** ("Technical
+University of Munich", not the full department/institute string). Only
+report an institute name if the affiliation genuinely has no university at
+all (e.g. a standalone Max Planck Institute or a hospital not part of a
+university system).
 
 Allowed section names (use these EXACT strings; omit empty sections):
 - `Chunking & sequence processing`
@@ -94,7 +134,12 @@ Allowed section names (use these EXACT strings; omit empty sections):
   `canon_entry` null. **The chosen paper must be peer-reviewed/published —
   never a preprint.** Check each candidate's `is_preprint` field. If none of
   today's strong candidates are peer-reviewed, set `source="canon"` instead,
-  even on a "new" rotation day — never force a preprint pick.
+  even on a "new" rotation day — never force a preprint pick. This also
+  covers **eLife**: its "Reviewed Preprint" model means a paper can carry a
+  normal-looking DOI and citation before any final accept/reject decision,
+  so eLife candidates are conservatively flagged `is_preprint` unless
+  independently confirmed final via another source — respect that flag the
+  same as any other preprint for Paper-of-the-Day purposes.
 - Relevance notes must be specific and never generic ("this is relevant to
   your field" is not acceptable) — see `profile.md`'s "Depth expected"
   section for length/content guidance.
